@@ -209,7 +209,7 @@ const api = {
 
 		let contents = util.readFile(CHANGELOG_PATH);
 
-		if (contents.includes("### Next")) {
+		if (contents && contents.includes("### Next")) {
 			contents = contents.replace(
 				/### Next([^#]+)/,
 				(match, submatch) => {
@@ -221,7 +221,9 @@ const api = {
 			util.writeFile(CHANGELOG_PATH, contents);
 		} else {
 			return command.getTagList().then(tags => {
-				let latestRelease = `v${currentVersion}`;
+				// TODO: Why did we set the currentVersion?
+				// let latestRelease = `v${currentVersion}`;
+				let latestRelease;
 				if (tags.length) {
 					if (!prerelease) {
 						tags = tags.filter(tag => !tag.includes("-"));
@@ -375,7 +377,11 @@ ${chalk.green(log)}`);
 	gitDiff(state) {
 		state.step = "gitDiff";
 		const { configPath } = state;
-		const files = [CHANGELOG_PATH, configPath];
+		const files = [configPath];
+
+		if (util.fileExists(CHANGELOG_PATH)) {
+			files.push(CHANGELOG_PATH);
+		}
 
 		if (util.fileExists(PACKAGELOCKJSON_PATH)) {
 			files.push(PACKAGELOCKJSON_PATH);
@@ -1245,11 +1251,20 @@ ${chalk.green(log)}`);
 	},
 	checkNewCommits(state) {
 		state.step = "checkNewCommits";
-		const { currentVersion } = state;
-		const latestRelease = `v${currentVersion}`;
+		// const { currentVersion } = state;
+		// const latestRelease = `v${currentVersion}`;
+		return command.getTagList().then(tags => {
+			tags = tags.filter(tag => !tag.includes("-"));
+			console.log("tags:", tags.length);
+			if (tags && tags.length == 0) {
+				return Promise.resolve();
+			}
+			console.log("after");
 
-		return command.shortLog(latestRelease).then(data => {
-			state.log = data;
+			const latestRelease = tags[tags.length - 1];
+			return command.shortLog(latestRelease).then(data => {
+				state.log = data;
+			});
 		});
 	},
 	promptKeepBranchOrCreateNew(state) {

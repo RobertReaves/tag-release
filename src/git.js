@@ -56,6 +56,7 @@ const git = {
 		onError
 	}) {
 		const args = `diff ${option}${files ? ` ${files.join(" ")}` : ""}`;
+		console.log("diff:", args);
 		return runCommand({
 			args,
 			maxBuffer,

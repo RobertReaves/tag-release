@@ -350,6 +350,7 @@ const command = {
 	shortLog(tag) {
 		let args = `--no-pager log --no-merges --date-order --pretty=format:"%s"`;
 		args = tag && tag.length ? `${args} ${tag}..` : args;
+		console.log("shortLog:", args);
 		return runCommand({ args, logMessage: "parsing git log" });
 	},
 
